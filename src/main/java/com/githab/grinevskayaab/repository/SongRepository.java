@@ -47,8 +47,32 @@ public class SongRepository {
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 List<Song> result = new ArrayList<>();
+                List<Album> albums = new ArrayList<>();
                 while (resultSet.next()) {
-                    Song song = createObjSong(resultSet);
+                    Long albumId = resultSet.getObject("album_id") == null ? null : resultSet.getLong("album_id");
+                    Album album = null;
+
+                    if (albumId != null) {
+                        for (Album obj : albums) {
+                            if (obj.getId().equals(albumId)) {
+                                album = obj;
+                                break;
+                            }
+                        }
+
+                        if (album == null) {
+                            album = getAlbum(albumId);
+                            albums.add(album);
+                        }
+                    }
+
+
+                    Song song = new Song(
+                            resultSet.getLong("id"),
+                            resultSet.getString("name"),
+                            resultSet.getObject("year") == null ? null : resultSet.getInt("year"),
+                            album
+                    );
 
                     result.add(song);
                 }
@@ -69,7 +93,15 @@ public class SongRepository {
 
         try (ResultSet resultSet = statement.executeQuery()) {
             if (resultSet.next()) {
-                return createObjSong(resultSet);
+                Long albumId = resultSet.getObject("album_id") == null ? null : resultSet.getLong("album_id");
+                Album album = getAlbum(albumId);
+
+                return new Song(
+                        resultSet.getLong("id"),
+                        resultSet.getString("name"),
+                        resultSet.getObject("year") == null ? null : resultSet.getInt("year"),
+                        album
+                );
             } else {
                 System.out.println("Такой песни нет в БД");
                 return null;
@@ -77,17 +109,17 @@ public class SongRepository {
         }
     }
 
-    private Song createObjSong(ResultSet resultSet) throws SQLException {
-        Long albumId = resultSet.getObject("album_id") == null ? null : resultSet.getLong("album_id");
-        Album album = getAlbum(albumId);
-
-        return new Song(
-                resultSet.getLong("id"),
-                resultSet.getString("name"),
-                resultSet.getObject("year") == null ? null : resultSet.getInt("year"),
-                album
-        );
-    }
+//    private Song createObjSong(ResultSet resultSet) throws SQLException {
+//        Long albumId = resultSet.getObject("album_id") == null ? null : resultSet.getLong("album_id");
+//        Album album = getAlbum(albumId);
+//
+//        return new Song(
+//                resultSet.getLong("id"),
+//                resultSet.getString("name"),
+//                resultSet.getObject("year") == null ? null : resultSet.getInt("year"),
+//                album
+//        );
+//    }
 
     private Album getAlbum(Long albumId) throws SQLException {
         if (albumId == null) return null;

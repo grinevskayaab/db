@@ -7,6 +7,7 @@ import com.githab.grinevskayaab.repository.SongRepository;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
@@ -14,10 +15,13 @@ public class Main {
         DatabaseConfig app = new DatabaseConfig();
         Connection connection = app.connectDatabase();
 //
-        SongRepository songRepository = new SongRepository(connection);
-        System.out.println(songRepository.findAll());
-        System.out.println(songRepository.findById(2L));
-        System.out.println(songRepository.findById(200L));
+//        SongRepository songRepository = new SongRepository(connection);
+//        System.out.println(songRepository.findAll());
+//        System.out.println(songRepository.findById(2L));
+//        System.out.println(songRepository.findById(200L));
+
+
+
 //
 //        Song song = new Song("Пути");
 //        System.out.println(song);
@@ -38,10 +42,10 @@ public class Main {
 //        System.out.println(songRepository.getTopSongs());
 
 
-        AlbumRepository albumRepository = new AlbumRepository(connection);
-        System.out.println(albumRepository.findAll());
-        System.out.println(albumRepository.findById(1L));
-        System.out.println(albumRepository.findById(200L));
+//        AlbumRepository albumRepository = new AlbumRepository(connection);
+//        System.out.println(albumRepository.findAll());
+//        System.out.println(albumRepository.findById(1L));
+//        System.out.println(albumRepository.findById(200L));
 //
 //        Album album = new Album("Пути");
 ////        System.out.println(album);

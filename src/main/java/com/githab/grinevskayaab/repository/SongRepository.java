@@ -1,4 +1,7 @@
-package com.githab.grinevskayaab;
+package com.githab.grinevskayaab.repository;
+
+import com.githab.grinevskayaab.entity.Album;
+import com.githab.grinevskayaab.entity.Song;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -12,6 +15,32 @@ public class SongRepository {
         this.connection = connection;
     }
 
+    //вариант только с id альбома
+//    public List<Song> findAll() {
+//        String request = "select * from songs";
+//        try (PreparedStatement statement = connection.prepareStatement(request)) {
+//
+//            try (ResultSet resultSet = statement.executeQuery()) {
+//                List<Song> result = new ArrayList<>();
+//                while (resultSet.next()) {
+//                    Song song = new Song(
+//                            resultSet.getLong("id"),
+//                            resultSet.getString("name"),
+//                            resultSet.getObject("year") == null ? null : resultSet.getInt("year"),
+//                            resultSet.getObject("album_id") == null ? null : new Album(resultSet.getLong("album_id"))
+//                    );
+//
+//                    result.add(song);
+//                }
+//                return result;
+//            }
+//
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//            throw new RuntimeException(e);
+//        }
+//    }
+
     public List<Song> findAll() {
         String request = "select * from songs";
         try (PreparedStatement statement = connection.prepareStatement(request)) {
@@ -19,12 +48,7 @@ public class SongRepository {
             try (ResultSet resultSet = statement.executeQuery()) {
                 List<Song> result = new ArrayList<>();
                 while (resultSet.next()) {
-                    Song song = new Song(
-                            resultSet.getLong("id"),
-                            resultSet.getString("name"),
-                            resultSet.getObject("album_id") == null ? null : resultSet.getLong("album_id"),
-                            resultSet.getObject("year") == null ? null : resultSet.getInt("year")
-                    );
+                    Song song = createObjSong(resultSet);
 
                     result.add(song);
                 }
@@ -37,20 +61,39 @@ public class SongRepository {
         }
     }
 
+
     public Song findById(Long id) throws SQLException {
         String request = "select * from songs where id=?";
         PreparedStatement statement = connection.prepareStatement(request);
         statement.setLong(1, id);
 
-        ResultSet resultSet = statement.executeQuery();
-        resultSet.next();
+        try (ResultSet resultSet = statement.executeQuery()) {
+            if (resultSet.next()) {
+                return createObjSong(resultSet);
+            } else {
+                System.out.println("Такой песни нет в БД");
+                return null;
+            }
+        }
+    }
+
+    private Song createObjSong(ResultSet resultSet) throws SQLException {
+        Long albumId = resultSet.getObject("album_id") == null ? null : resultSet.getLong("album_id");
+        Album album = getAlbum(albumId);
+
         return new Song(
                 resultSet.getLong("id"),
                 resultSet.getString("name"),
-                resultSet.getObject("album_id") == null ? null : resultSet.getLong("album_id"),
-                resultSet.getObject("year") == null ? null : resultSet.getInt("year")
+                resultSet.getObject("year") == null ? null : resultSet.getInt("year"),
+                album
         );
+    }
 
+    private Album getAlbum(Long albumId) throws SQLException {
+        if (albumId == null) return null;
+
+        AlbumRepository albumRepository = new AlbumRepository(connection);
+        return albumRepository.findById(albumId);
     }
 
     public Song createSong(Song song) throws SQLException {
@@ -65,10 +108,10 @@ public class SongRepository {
             statement.setInt(2, song.getYear());
         }
 
-        if (song.getAlbumId() == null) {
+        if (song.getAlbum() == null) {
             statement.setNull(3, Types.INTEGER);
         } else {
-            statement.setLong(3, song.getAlbumId());
+            statement.setLong(3, song.getAlbum().getId());
         }
 
 
@@ -90,10 +133,10 @@ public class SongRepository {
         PreparedStatement statement = connection.prepareStatement(request);
         statement.setString(1, song.getName());
 
-        if (song.getAlbumId() == null) {
-            statement.setNull(2, Types.INTEGER);
+        if (song.getAlbum() == null) {
+            statement.setNull(3, Types.INTEGER);
         } else {
-            statement.setLong(2, song.getAlbumId());
+            statement.setLong(3, song.getAlbum().getId());
         }
 
         if (song.getYear() == null) {
@@ -147,8 +190,8 @@ public class SongRepository {
             Song song = new Song(
                     resultSet.getLong("id"),
                     resultSet.getString("name"),
-                    resultSet.getObject("album_id") == null ? null : resultSet.getLong("album_id"),
-                    resultSet.getObject("year") == null ? null : resultSet.getInt("year")
+                    resultSet.getObject("year") == null ? null : resultSet.getInt("year"),
+                    resultSet.getObject("album_id") == null ? null : new Album(resultSet.getLong("album_id"))
             );
 
             result.add(song);

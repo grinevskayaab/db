@@ -1,14 +1,34 @@
-package com.githab.grinevskayaab;
+package com.githab.grinevskayaab.entity;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Album {
     private Long id;
     private String name;
     private Integer year = null;
+    private List<Song> songs = null;
 
     public Album(Long id, String name, Integer year) {
         this.id = id;
         this.name = name;
         this.year = year;
+    }
+
+    public Album(Long id, String name, Integer year, List<Song> songs) {
+        this.id = id;
+        this.name = name;
+        this.year = year;
+        this.songs = songs;
+    }
+
+    public Album(Long id, List<Song> songs) {
+        this.id = id;
+        this.songs = songs;
+    }
+
+    public Album(Long id) {
+        this.id = id;
     }
 
     public Album(String name) {
@@ -39,10 +59,16 @@ public class Album {
         this.year = year;
     }
 
+    public void setSongs(List<Song> songs) {
+        this.songs = songs;
+    }
+
     @Override
     public String toString() {
-        return "id=" + id +
+        return "Album" +
+                "id=" + id +
                 ", name='" + name + '\'' +
-                ", year=" + year + '\n';
+                ", year=" + year +
+                ", songs=\n" + songs + '\n';
     }
 }

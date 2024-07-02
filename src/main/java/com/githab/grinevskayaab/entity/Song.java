@@ -1,23 +1,23 @@
-package com.githab.grinevskayaab;
+package com.githab.grinevskayaab.entity;
 
 public class Song {
     private Long id;
     private Integer year = null;
-    private Long albumId = null;
     private final String name;
+    private Album album = null;
 
 
-    public Song(Long id, String name, Long album_id, Integer year) {
+    public Song(Long id, String name, Integer year, Album album) {
         this.id = id;
         this.name = name;
-        this.albumId = album_id;
         this.year = year;
+        this.album = album;
     }
 
-    public Song(String name, Long album_id, Integer year) {
+    public Song(Long id, String name, Integer year) {
         this.name = name;
-        this.albumId = album_id;
         this.year = year;
+        this.id = id;
     }
 
     public Song(String name) {
@@ -32,10 +32,9 @@ public class Song {
         this.year = year;
     }
 
-    public void setAlbumId(Long albumId) {
-        this.albumId = albumId;
+    public Album getAlbum() {
+        return album;
     }
-
 
     public Long getId() {
         return id;
@@ -45,19 +44,17 @@ public class Song {
         return year;
     }
 
-    public Long getAlbumId() {
-        return albumId;
-    }
-
     public String getName() {
         return name;
     }
 
     @Override
     public String toString() {
-        return  "id=" + id +
+        return "Song " +
+                "id=" + id +
                 ", year=" + year +
-                ", album_id=" + albumId +
-                ", name='" + name + "'\n";
+                ", name='" + name + '\'' +
+                ", album=" + (album == null ? null : album.getId()) +
+                '\n';
     }
 }

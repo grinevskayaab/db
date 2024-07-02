@@ -1,4 +1,7 @@
-package com.githab.grinevskayaab;
+package com.githab.grinevskayaab.repository;
+
+import com.githab.grinevskayaab.entity.Album;
+import com.githab.grinevskayaab.entity.Song;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -19,11 +22,7 @@ public class AlbumRepository {
             try (ResultSet resultSet = statement.executeQuery()) {
                 List<Album> result = new ArrayList<>();
                 while (resultSet.next()) {
-                    Album album = new Album(
-                            resultSet.getLong("id"),
-                            resultSet.getString("name"),
-                            resultSet.getObject("year") == null ? null : resultSet.getInt("year")
-                    );
+                   Album album = createObjAlbum(resultSet);
 
                     result.add(album);
                 }
@@ -41,14 +40,51 @@ public class AlbumRepository {
         PreparedStatement statement = connection.prepareStatement(request);
         statement.setLong(1, id);
 
-        ResultSet resultSet = statement.executeQuery();
-        resultSet.next();
-        return new Album(
+        try (ResultSet resultSet = statement.executeQuery()) {
+            if (resultSet.next()) {
+                return createObjAlbum(resultSet);
+            } else {
+                System.out.println("Альбома с такой песне нет в БД");
+                return null;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Album createObjAlbum(ResultSet resultSet) throws SQLException {
+        Album album = new Album(
                 resultSet.getLong("id"),
                 resultSet.getString("name"),
                 resultSet.getObject("year") == null ? null : resultSet.getInt("year")
         );
 
+        List<Song> songs = findSongByAlbumId(album);
+        album.setSongs(songs);
+        return album;
+    }
+
+    private List<Song> findSongByAlbumId(Album album) throws SQLException {
+        String request = "select * from songs where album_id=?";
+        PreparedStatement statement = connection.prepareStatement(request);
+        statement.setLong(1, album.getId());
+
+        try (ResultSet resultSet = statement.executeQuery()) {
+            List<Song> result = new ArrayList<>();
+            while (resultSet.next()) {
+                Song song = new Song(
+                        resultSet.getLong("id"),
+                        resultSet.getString("name"),
+                        resultSet.getObject("year") == null ? null : resultSet.getInt("year"),
+                        album
+                );
+
+                result.add(song);
+            }
+            return result;
+        }
     }
 
     public Album createAlbum(Album album) throws SQLException {
@@ -75,6 +111,7 @@ public class AlbumRepository {
 
         return album;
     }
+
 
     public void updateAlbum(Album album) throws SQLException {
         String request = "Update albums set name = ?, year = ? where id = ?";
